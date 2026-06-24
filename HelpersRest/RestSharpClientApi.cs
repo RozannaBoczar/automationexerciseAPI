@@ -17,13 +17,19 @@ public class RestSharpClientApi
 	public async Task<RestResponse> PostAsync(string endpoint, object body = null)
 	{
 		var request = new RestRequest(endpoint, Method.Post);
-		request.AddJsonBody(body);
+		if (body != null)
+		{
+			request.AddJsonBody(body);
+		}
 		return await _client.PostAsync(request);
 	}
 	public async Task<RestResponse> PutAsync(string endpoint, object body = null)
 	{
 		var request = new RestRequest(endpoint, Method.Put);
-		request.AddJsonBody(body);
+		if (body != null)
+		{
+			request.AddJsonBody(body);
+		}
 		return await _client.PutAsync(request);
 	}
 	public async Task<RestResponse> DeleteAsync(string endpoint)
