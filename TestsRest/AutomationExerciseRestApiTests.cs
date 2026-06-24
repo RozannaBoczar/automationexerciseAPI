@@ -12,11 +12,33 @@ namespace automationexerciseAPI.TestsRest
         public async Task GetAllProducts_ShouldReturnSuccessStatusCode()
         {
             // Arrange
-            var client = new RestSharpClientApi("https://automationexercise.com/api/");
+            var client = new RestSharpClientApi();
             // Act
             var response = await client.GetAsync("productsList");
             // Assert
             response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        }
+
+        [Test]
+        public async Task PostAllProducts_ShouldReturnSuccessStatusCode()
+        {
+            // Arrange
+            var client = new RestSharpClientApi();
+            // Act
+            var response = await client.PostAsync("productsList");
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.MethodNotAllowed);
+        }
+
+        [Test]
+        public async Task GetAllBrandsList_ShouldReturnSuccessStatusCode()
+        {
+            // Arrange
+            var client = new RestSharpClientApi();
+            // Act
+            var response = await client.GetAsync("brandsList");
+            // Assert
+            response.StatusCode.Should().Be(System.Net.HttpStatusCode.MethodNotAllowed);
         }
     }
 }
