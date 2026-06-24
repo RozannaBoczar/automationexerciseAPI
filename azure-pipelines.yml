@@ -1,21 +1,45 @@
 trigger:
-  - main # lub master, zależnie od nazwy Twojej głównej gałęzi
+  - main
 
 pool:
-  vmImage: 'ubuntu-latest' # Uruchamiamy na czystym systemie Linux z zainstalowanym Dockerem
+  vmImage: 'ubuntu-latest'
 
 steps:
-  - task: DockerCompose@1
-    displayName: 'Uruchomienie testów w Docker Compose'
+  # 1. Zbudowanie obrazu kontenera
+  - task: DockerCompose@0
+    displayName: 'Budowanie kontenerów'
     inputs:
       action: 'Run a Docker Compose command'
       dockerComposeFile: '**/docker-compose.yml'
-      projectName: 'automationtests'  # <- TA LINIJKA NAPRAWI BŁĄD
-      dockerComposeCommand: 'up --build --exit-code-from automation-tests'
-# 2. Opublikowanie raportu w interfejsie Azure DevOps
+      projectName: 'automationtests'
+      dockerComposeCommand: 'build'
+
+  # 2. Uruchomienie testów (bez flagi exit-code, żeby krok nie wywalił potoku od razu)
+  - task: DockerCompose@0
+    displayName: 'Uruchomienie testów'
+    inputs:
+      action: 'Run a Docker Compose command'
+      dockerComposeFile: '**/docker-compose.yml'
+      projectName: 'automationtests'
+      dockerComposeCommand: 'up'
+
+  # 3. WYCIĄGNIĘCIE RAPORTU (Kluczowy krok): Kopiujemy pliki z zatrzymanego kontenera
+  - script: |
+      docker cp $(docker ps -a -q --filter name=automation-tests):/src/TestResults $(System.DefaultWorkingDirectory)/TestResults
+    displayName: 'Kopiowanie raportu z wnętrza kontenera'
+    condition: succeededOrFailed()
+
+  # 4. Publikowanie raportu w Azure DevOps (teraz plik .trx na pewno tam będzie)
   - task: PublishTestResults@2
     displayName: 'Publikowanie wyników testów w Azure'
-    condition: succeededOrFailed() # Wykonaj ZAWSZE, nawet gdy testy zakończą się niepowodzeniem
+    condition: succeededOrFailed()
     inputs:
       testResultsFormat: 'VSTest'
-      testResultsFiles: '**/TestResults/*.trx' # Szuka plików .trx wygenerowanych przez dotnet test
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/TestResults/*.trx'
+
+  # 5. SPRZĄTANIE I RAPORT KOŃCOWY: Sprawdzamy czy testy przeszły i gasimy środowisko
+  - script: |
+      docker compose down
+      exit $(docker inspect $(docker ps -a -q --filter name=automation-tests) --format='{{.State.ExitCode}}')
+    displayName: 'Zamknięcie środowiska i weryfikacja statusu testów'
+    condition: succeededOrFailed()
