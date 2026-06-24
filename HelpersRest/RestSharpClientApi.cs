@@ -1,17 +1,23 @@
-﻿using RestSharp;
+﻿using automationexerciseAPI.HelpersRest;
+using RestSharp;
 using System.Buffers.Text;
 
-public class RestSharpClientApi
+public class RestSharpClientApi : IRestSharpClientApi
 {
 	private readonly RestClient _client;
-	private readonly string BaseUrl = " https://automationexercise.com/api/";
-	public RestSharpClientApi()
+	private readonly string BaseUrl;
+	public RestSharpClientApi(string url)
 	{
-		_client = new RestClient(BaseUrl);
+		BaseUrl = url;
+        _client = new RestClient(url);
 	}
-	public async Task<RestResponse> GetAsync(string endpoint)
+	public async Task<RestResponse> GetAsync(string endpoint, object body = null)
 	{
 		var request = new RestRequest(endpoint, Method.Get);
+		if (body != null)
+		{
+			request.AddJsonBody(body);
+		}
 		return await _client.GetAsync(request);
 	}
 	public async Task<RestResponse> PostAsync(string endpoint, object body = null)
@@ -32,9 +38,13 @@ public class RestSharpClientApi
 		}
 		return await _client.PutAsync(request);
 	}
-	public async Task<RestResponse> DeleteAsync(string endpoint)
+	public async Task<RestResponse> DeleteAsync(string endpoint, object body = null)
 	{
 		var request = new RestRequest(endpoint, Method.Delete);
+		if (body != null)
+		{
+			request.AddJsonBody(body);
+		}
 		return await _client.DeleteAsync(request);
 	}
 }
