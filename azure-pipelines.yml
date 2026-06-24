@@ -14,32 +14,33 @@ steps:
       projectName: 'automationtests'
       dockerComposeCommand: 'build'
 
-  # 2. Uruchomienie testów (bez flagi exit-code, żeby krok nie wywalił potoku od razu)
+  # 2. Uruchomienie testów (Zmieniamy na "continueOnError: true", aby krok pozwolił przejść do kopiowania plików)
   - task: DockerCompose@0
-    displayName: 'Uruchomienie testów'
+    displayName: 'Uruchomienie testów w Docker'
+    continueOnError: true # Przejdź dalej, nawet jak testy się wyłożą
     inputs:
       action: 'Run a Docker Compose command'
       dockerComposeFile: '**/docker-compose.yml'
       projectName: 'automationtests'
       dockerComposeCommand: 'up'
 
-  # 3. WYCIĄGNIĘCIE RAPORTU (Kluczowy krok): Kopiujemy pliki z zatrzymanego kontenera
+  # 3. Kopiujemy pliki z zatrzymanego kontenera
   - script: |
       docker cp $(docker ps -a -q --filter name=automation-tests):/src/TestResults $(System.DefaultWorkingDirectory)/TestResults
     displayName: 'Kopiowanie raportu z wnętrza kontenera'
     condition: succeededOrFailed()
 
-  # 4. Publikowanie raportu w Azure DevOps (teraz plik .trx na pewno tam będzie)
+  # 4. PUBLIKOWANIE (Kluczowy krok): Publikuje wyniki i to To ZADANIE OBLUJE POTOK NA CZERWONO
   - task: PublishTestResults@2
     displayName: 'Publikowanie wyników testów w Azure'
     condition: succeededOrFailed()
     inputs:
       testResultsFormat: 'VSTest'
       testResultsFiles: '$(System.DefaultWorkingDirectory)/TestResults/*.trx'
+      failTaskOnFailedTests: true # Oznaczy to zadanie na CZERWONO, jeśli chociaż 1 test się nie powiódł
 
-  # 5. SPRZĄTANIE I RAPORT KOŃCOWY: Sprawdzamy czy testy przeszły i gasimy środowisko
+  # 5. Wyłączenie środowiska Docker
   - script: |
       docker compose down
-      exit $(docker inspect $(docker ps -a -q --filter name=automation-tests) --format='{{.State.ExitCode}}')
-    displayName: 'Zamknięcie środowiska i weryfikacja statusu testów'
+    displayName: 'Zamknięcie środowiska Docker'
     condition: succeededOrFailed()
