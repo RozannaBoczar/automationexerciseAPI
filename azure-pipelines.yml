@@ -10,5 +10,5 @@ steps:
     inputs:
       action: 'Run a Docker Compose command'
       dockerComposeFile: '**/docker-compose.yml'
-      azureSubscriptionEndpoint: '' # Pozostaw puste, jeśli nie łączysz się z zewnętrznym rejestrem Azure
+      projectName: 'automationtests'  # <- TA LINIJKA NAPRAWI BŁĄD
       dockerComposeCommand: 'up --build --exit-code-from automation-tests'
