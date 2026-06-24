@@ -6,7 +6,7 @@ pool:
 
 steps:
   # 1. Zbudowanie obrazu kontenera
-  - task: DockerCompose@0
+  - task: DockerCompose@1
     displayName: 'Budowanie kontenerów'
     inputs:
       action: 'Run a Docker Compose command'
@@ -15,8 +15,9 @@ steps:
       dockerComposeCommand: 'build'
 
   # 2. Uruchomienie testów (Zmieniamy na "continueOnError: true", aby krok pozwolił przejść do kopiowania plików)
-  - task: DockerCompose@0
+  - task: DockerCompose@1
     displayName: 'Uruchomienie testów w Docker'
+    condition: failTaskOnFailedTests
     continueOnError: true # Przejdź dalej, nawet jak testy się wyłożą
     inputs:
       action: 'Run a Docker Compose command'
