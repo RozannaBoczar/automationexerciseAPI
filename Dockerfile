@@ -14,4 +14,5 @@ RUN dotnet restore "automationexerciseAPI.csproj"
 COPY . .
 
 # KLUCZOWA ZMIANA: Uruchomienie testów przy starcie kontenera
-ENTRYPOINT ["dotnet", "test", "automationexerciseAPI.csproj", "--logger:trx"]
+ENTRYPOINT ["dotnet", "test", "automationexerciseAPI.csproj", "--logger:trx", "--results-directory", "/src/TestResults"]
+
