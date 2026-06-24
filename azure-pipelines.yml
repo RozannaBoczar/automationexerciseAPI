@@ -1,0 +1,14 @@
+trigger:
+  - main # lub master, zależnie od nazwy Twojej głównej gałęzi
+
+pool:
+  vmImage: 'ubuntu-latest' # Uruchamiamy na czystym systemie Linux z zainstalowanym Dockerem
+
+steps:
+  - task: DockerCompose@0
+    displayName: 'Uruchomienie testów w Docker Compose'
+    inputs:
+      action: 'Run a Docker Compose command'
+      dockerComposeFile: '**/docker-compose.yml'
+      azureSubscriptionEndpoint: '' # Pozostaw puste, jeśli nie łączysz się z zewnętrznym rejestrem Azure
+      dockerComposeCommand: 'up --build --exit-code-from automation-tests'
