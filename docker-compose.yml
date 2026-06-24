@@ -1,0 +1,6 @@
+services:
+  automation-tests:
+    image: testy-api-image
+    build:
+      context: .
+      dockerfile: Dockerfile
